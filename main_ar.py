@@ -6,11 +6,8 @@ Created on Tue Dec  3 11:25:00 2019
 """
 
 import sys
-#import math
-#import numpy as np
-#import numpy.ma as ma   #маски
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.uic import loadUi
 import heapq #очередь с приоритетами (двоичная куча)
 #специальная библиотека для работы со словарями, списками и т.п.
@@ -29,7 +26,8 @@ class New_rib(coll.namedtuple("New_rib",["l","r"])): #специальный к�
 class List(coll.namedtuple("List",["ch"])): 
     def walk(self,cod,sep):
         cod[self.ch]=sep or "0" #возвращает разделитель (например, пустая строка) или 0 (во втором cлучаи и одним символом
- 
+
+#функция шифрования
 def codirovanie(str_files): #функция кодирования по коду Хаффмана
     heap=[] #массив для будущего создания кучи (очереди)
     CC=coll.Counter(str_files) #расчёт частоты употребления символов
@@ -48,6 +46,7 @@ def codirovanie(str_files): #функция кодирования по коду
         root.walk(cod,"") #от корня формируется словарь с кодовыми словами
     return cod #алфавит: символ и его код
 
+#функция дешифрования
 def decodirovanie(zakod, alf): #функция декодирования 
     decod_str=[] #раскодированные символы, но в виде массива
     bin_ch="" #строка для накопления двоичных символов
@@ -60,33 +59,40 @@ def decodirovanie(zakod, alf): #функция декодирования
     stroka="".join(decod_str) #формирование строки раскодированной
     return stroka #декодированная строка
        
-class Transport_main(QMainWindow): #класс, где храняться все действия
+class Main_arhiv(QMainWindow): #класс, где храняться все действия
     def __init__(self): #служебная функция инициализации,загрузка окна
          QMainWindow.__init__(self)
          loadUi("design.ui",self) #файл с расположение кнопок и виджета (должны находиться в одной папке)
+         self.setWindowTitle('Архиватор/распаковщик')
          
-         self.button_arhiv.clicked.connect(self.arhiv) #при нажатии на кнопку "пересчитать" происходит пересчёт
-         #self.button_raspakovka.clicked.connect(self.raspakovka) #при нажатии на кнопку "решить" происходит поиск решения и считается целевая функция
-         #global f
-         self.action_2.triggered.connect(self.showDialog)  
+         self.button_arhiv.clicked.connect(self.arhiv) #кнопка для архивирования
+         self.button_raspakovka.clicked.connect(self.raspakovka) #кнопка для распраковки
+         
+         self.action_2.triggered.connect(self.showDialog) #файл/открыть файл для архивирования
+         self.action_3.triggered.connect(self.sohran) #файл/сохранить файл после распаковки
          
     def showDialog(self): #открытие файла
-        fname = QFileDialog.getOpenFileName(self, 'открыть файл', None, "Текстовый документ (*.txt)")[0]
+        fname = QFileDialog.getOpenFileName(self, 'открыть файл', None, "Текстовый документ (*.txt)")[0] 
         f = open(fname, 'r')
         with f:
             data = f.read()
             self.okno_texta.setText(data)    
-    def arhiv(self):
-        #global f
-        #with open('huff.txt') as files: #открытие файла на чтение
-            #f=files.read() #вытаскиваем значения из файла и преобразуем в строку
-         #поле для ввода текста
-        f=self.okno_texta.toPlainText()
+            
+    def sohran(self): #сохрание файла
         f1=self.okno_file.toPlainText()
-        #print("имя файла")
-        #print(f1)
-        #h=".txt"
-        #f1=f1+h
+        if f1=="" or f1==" ":
+            QMessageBox.information(self, 'Предупреждение', "Введите не пустое имя файла!!!!")
+        else:
+            name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File',f1, "Текстовый документ (*.txt)")
+            f=self.okno_texta.toPlainText()
+            with open(name[0],"w") as fout: #байтовая запись в файл
+                fout.write(f)
+            msgbox = QMessageBox(QMessageBox.Information, "Сообщение", "Распаковка прошла успешно!!. \nИмя вашего файла: %s" % f1, QMessageBox.Ok)
+            msgbox.exec_()
+            
+    def arhiv(self): #архивирование
+        f=self.okno_texta.toPlainText() #окошко с текстом
+        f1=self.okno_file.toPlainText() #окошко с названием файла
         cod1 = codirovanie(f) #вызов алгоритма кодирования
         zakod = "".join(cod1[ch] for ch in f) #Сборка строки из списка с разделителем который перед точкой, без этого выведет только словарь
         nyl=0 #объявляем переменную для подсчёта количества нулей в конце, для кратности 8
@@ -109,20 +115,16 @@ class Transport_main(QMainWindow): #класс, где храняться все
             QMessageBox.information(self, 'Предупреждение', "Введите не пустое имя файла!!!!")
         else:
             name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File',f1, "Текстовый документ (*.txt)")
-        #name.setNameFilters(["*.txt"])
-        #name.selectNameFilter("Текстовый документ (*.txt)")
             with open(name[0],"wb") as fout: #байтовая запись в файл
                 fout.write(bytearray(codec))
-            #запись словаря в файл
-            #print("")
-            #print(codec)
             with open('slovar.txt','wb') as m_file_cod: #байтовая запись файл словаря
                 pickle.dump(cod1,m_file_cod) #запись специализированного объекта в файл
             msgbox = QMessageBox(QMessageBox.Information, "Сообщение", "Архивирование прошло успешно. \nИмя вашего файла: %s" % f1, QMessageBox.Ok)
             msgbox.exec_()
             
-    def raspakovka(self):
-        with open("cod_huff.txt", "rb") as m_file_decod: #открытие файла на байтовое чтение
+    def raspakovka(self): #распаковка
+        fname = QFileDialog.getOpenFileName(self, 'открыть файл', None, "Текстовый документ (*.txt)")[0]
+        with open(fname, "rb") as m_file_decod: #открытие файла на байтовое чтение
             de_codec = m_file_decod.read() #байтовое чтение из файла
             shufr=list(de_codec.decode('utf-8')) #массив из закодированных символов
         for i in range(len(shufr)):#для каждого элемента зашифрованного
@@ -141,14 +143,12 @@ class Transport_main(QMainWindow): #класс, где храняться все
         with open('slovar.txt','rb') as m_file_dec: #байтовое чтение файла
             cod2=pickle.load(m_file_dec) #загружает объект из файла
         s=decodirovanie(zas, cod2) #декодирование
-        #запись в файл декодированной строки
-        with open("decod_huff.txt", "w") as fi:
-            fi.write(s)
-            
+        self.okno_texta.setText(s)
+                  
 ###-----------------------------------------------------------------------------------------
 #вызов окна 
 if __name__ == '__main__': 
    app = QApplication(sys.argv) 
-   form = Transport_main() 
+   form = Main_arhiv() 
    form.show() 
    app.exec() 

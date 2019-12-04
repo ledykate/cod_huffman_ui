@@ -39,7 +39,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Архивировать</string>
+     <string>Архивировать файл</string>
     </property>
    </widget>
    <widget class="QPushButton" name="button_raspakovka">
@@ -59,7 +59,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Распаковать</string>
+     <string>Распаковать файл</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -84,7 +84,7 @@
     <property name="geometry">
      <rect>
       <x>950</x>
-      <y>510</y>
+      <y>480</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -94,7 +94,7 @@
     <property name="geometry">
      <rect>
       <x>980</x>
-      <y>470</y>
+      <y>450</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -120,17 +120,23 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Файл</string>
+     <string>Файл </string>
     </property>
     <addaction name="separator"/>
     <addaction name="action_2"/>
+    <addaction name="action_3"/>
    </widget>
    <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_2">
    <property name="text">
-    <string>Выбрать файл</string>
+    <string>Выбрать файл для архивирования</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>Сохранить файл после распаковки</string>
    </property>
   </action>
  </widget>
